@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player - Estilo Spotify</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        @keyframes trackEntrance {
+            from { opacity: 0; transform: translateY(20px); filter: blur(5px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+        .track-animate {
+            animation: trackEntrance 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        /* Estilos específicos para o Menu de Início */
+        .welcome-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, auto);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .welcome-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .welcome-item:hover { background: rgba(255,255,255,0.2); }
+        .welcome-img { width: 80px; height: 80px; background: #282828; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; }
+        .welcome-name { padding: 0 16px; font-weight: bold; font-size: 14px; }
+
+        .horizontal-row { display: flex; gap: 24px; overflow-x: auto; padding-bottom: 16px; scrollbar-width: none; }
+        .home-card { width: 180px; min-width: 180px; background: #181818; padding: 16px; border-radius: 8px; cursor: pointer; transition: background 0.3s; }
+        .home-card:hover { background: #282828; }
+        .card-img { width: 100%; aspect-ratio: 1/1; background: #282828; display: flex; align-items: center; justify-content: center; font-size: 48px; border-radius: 4px; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        
+        /* Foto circular para artistas */
+        .card-img.artist { border-radius: 50%; }
+        
+        .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px; }
+        .section-header h2 { font-size: 24px; font-weight: 700; margin: 0; }
+        .show-all { font-size: 12px; font-weight: 700; color: #b3b3b3; cursor: pointer; text-transform: uppercase; letter-spacing: 0.1em; }
+        .show-all:hover { text-decoration: underline; }
+
+        .volume-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 15px;
+            position: relative;
+            gap: 0;
+            width: 100%;
+            height: 40px;
+        }
+        .volume-icon {
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+        .volume-container.expanded .volume-icon {
+            /* Move o ícone para a esquerda */
+            transform: translateX(-55px);
+        }
+        .volume-slider {
+            position: absolute;
+            width: 120px;
+            opacity: 0;
+            pointer-events: none;
+            /* Delay de 0.3s para a barra aparecer só depois que o ícone terminar de se mover */
+            transition: opacity 0.3s ease 0.3s;
+            margin: 0 !important;
+            /* Posiciona a barra mais próxima do ícone */
+            left: calc(50% - 35px);
+        }
+        .volume-container.expanded .volume-slider {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-title">♫ Música</div>
+            <ul class="sidebar-nav">
+                <li><a href="#home">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                    </svg>
+                    Início
+                </a></li>
+                <li><a href="#search">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C8.01 14 6 11.99 6 9.5S8.01 5 10.5 5 15 7.01 15 9.5 12.99 14 10.5 14z"/>
+                    </svg>
+                    Pesquisa
+                </a></li>
+                <li><a href="#library">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z"/>
+                    </svg>
+                    Sua Biblioteca
+                </a></li>
+            </ul>
+            <div class="sidebar-playlists-title">Playlists</div>
+            <ul class="sidebar-playlists">
+                <li><a href="#liked">
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 16px; height: 16px;">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        </svg>
+                    Músicas Curtidas
+                    </span>
+                </a></li>
+                <li><a href="#discover">
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 16px; height: 16px;">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                        </svg>
+                    Descoberta
+                    </span>
+                </a></li>
+                <li><a href="#recent">
+                    <span style="display: flex; align-items: center; gap: 8px;">
+                        <svg viewBox="0 0 24 24" fill="currentColor" style="width: 16px; height: 16px;">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                        </svg>
+                    Recentes
+                    </span>
+                </a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Player Section -->
+            <section class="player-section">
+
+                <!-- Interface de Início (Dashboard) -->
+                <div id="homeUI" class="home-container" style="display: none;">
+                    <h1 class="home-title">Good morning</h1>
+                    
+                    <div class="welcome-grid" id="welcomeGrid"></div>
+
+                    <section class="home-section">
+                        <div class="section-header">
+                            <h2>Jump back in</h2>
+                            <span class="show-all">Show all</span>
+                        </div>
+                        <div class="horizontal-row" id="jumpBackRow"></div>
+                    </section>
+
+                    <section class="home-section">
+                        <div class="section-header">
+                            <h2>More of what you like</h2>
+                            <span class="show-all">Show all</span>
+                        </div>
+                        <div class="horizontal-row" id="moreLikeRow"></div>
+                    </section>
+                </div>
+
+                <div id="searchUI" class="search-container" style="display: none; width: 100%;">
+                    <div class="section-header">
+                        <h2>Buscar músicas</h2>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Buscar por título, artista ou gênero">
+                    </div>
+                    <div id="searchResults" class="search-results"></div>
+                </div>
+
+                <!-- View do Player -->
+                <div id="playerView" style="display: flex; flex-direction: column; align-items: center; width: 100%; flex: 1; justify-content: center;">
+                <div class="album-container">
+                    <div class="album-art" id="albumArt">♫</div>
+                </div>
+
+                <div class="track-info">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                        <div class="track-title" id="trackTitle">Selecione uma música</div>
+                        <button id="likeBtn" style="background: none; border: none; color: white; cursor: pointer; padding: 5px; transition: transform 0.2s;">
+                            <svg id="likeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="track-artist" id="trackArtist">Artista</div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress" id="progress"></div>
+                    </div>
+                    <div class="time-display">
+                        <span id="currentTime">0:00</span>
+                        <span id="duration">0:00</span>
+                    </div>
+                </div>
+
+                <div class="controls" style="margin-top: 20px;">
+                        <button id="prevBtn" title="Anterior">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18 18l-8.5-6L18 6v12zM6 6h2v12H6z"/>
+                            </svg>
+                        </button>
+                        <button id="playBtn" class="play-btn" title="Play/Pausa">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </button>
+                        <button id="nextBtn" title="Próxima">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="volume-container">
+                        <span class="volume-icon">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.26 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                            </svg>
+                        </span>
+                        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="70">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel -->
+            <aside class="right-panel" id="rightPanel">
+                <div class="now-playing-title" id="categoryTitle">Tocando Agora - Músicas Curtidas</div>
+                <div class="currently-playing">
+                    <div class="category-badges" id="categoryBadges"></div>
+                    <div class="title" id="currentTrackTitle">Título da Música</div>
+                    <div class="artist" id="currentTrackArtist">Nome do Artista</div>
+                    <div class="artist-bio" id="artistBio">Uma breve biografia sobre o artista e o estilo da música aparece aqui.</div>
+                </div>
+
+                <div class="playlist-section-title">Fila <span id="queueCount" style="color: #9b67e0; font-weight: 700;">(15)</span></div>
+                <div id="queueContainer"></div>
+            </aside>
+        </div>
+    </div>
+
+    <audio id="audioPlayer" preload="auto"></audio>
+    <script src="js/script.js"></script>
+</body>
+</html>
